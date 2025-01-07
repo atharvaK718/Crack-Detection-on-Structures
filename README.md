@@ -81,9 +81,9 @@ This project aims to develop an advanced crack detection system by integrating a
 
 ## Example Outputs
 
-https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Static Images/Static 2.png
+https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Static_Images/Static_2.png
 
-https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real Time Images/Real Time 2.png
+https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real_Time_Images/Real_Time_2.png
 
 ---
 
