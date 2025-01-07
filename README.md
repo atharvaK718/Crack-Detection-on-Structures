@@ -80,12 +80,12 @@ This project aims to develop an advanced crack detection system by integrating a
 
 ## Example Outputs
 
-- **Static Image Prediction **
+- Static Image Prediction
   
   ![Static Image Example](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Static_Images/Static_2.png)  
   [Link to Static Image Analysis Image](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Static_Images/Static_2.png)
 
-- **Real-Time Prefiction **
+- Real-Time Prefiction
   
   ![Real-Time Monitoring Example](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real_Time_Images/Real_Time_2.png)  
   [Link to Real-Time Monitoring Image](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real_Time_Images/Real_Time_2.png)
