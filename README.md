@@ -42,7 +42,6 @@ This project aims to develop an advanced crack detection system by integrating a
 1. **Clone the Repository:**
    ```bash
    git clone https://github.com/atharvaK718/Crack-Detection-on-Structures.git
-   cd crack-detection
    ```
 
 2. **Install Dependencies:**
@@ -101,12 +100,12 @@ This project aims to develop an advanced crack detection system by integrating a
 
 2. **Train the Model:**
    ```bash
-   python scripts/training.py
+   python training.py
    ```
 
 3. **Evaluate the Model:**
    ```bash
-   python scripts/counter_prediction.py
+   python counter_prediction.py
    ```
 
 ---
