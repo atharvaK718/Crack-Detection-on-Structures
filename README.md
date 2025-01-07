@@ -81,10 +81,16 @@ This project aims to develop an advanced crack detection system by integrating a
 
 ## Example Outputs
 
-https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Static_Images/Static_2.png
+- **Real-Time Prefiction **
+  
+  ![Real-Time Monitoring Example](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real_Time_Images/Real_Time_2.png)  
+  [Link to Real-Time Monitoring Image](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real_Time_Images/Real_Time_2.png)
 
-https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real_Time_Images/Real_Time_2.png
-
+- **Static Image Prediction **
+  
+  ![Static Image Example](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Static_Images/Static_2.png)  
+  [Link to Static Image Analysis Image](https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Static_Images/Static_2.png)
+  
 ---
 
 ## Training
@@ -114,10 +120,3 @@ https://github.com/atharvaK718/Crack-Detection-on-Structures/raw/main/Real_Time_
 5. **User Interface:** A simple UI for viewing results and exporting data.
 
 ---
-
----
-
-## Contact
-
-For inquiries, please contact [your-email@example.com](mailto:your-email@example.com).
-
