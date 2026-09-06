@@ -1,0 +1,26 @@
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.coverage
+*.pptx
+Real_Time_Images
+Static_Images
+models
+*.md
+.git
+.gitignore
+requirements.txt
+backend/requirements.txt
+backend/conversion-requirements.txt
+backend/scripts
+contour_predict.py
+inference.py
+preprocessing.py
+training.py
+live_detection.py
+DEPLOY.md
+CHANGES.md
+README.md
+Overview of Project.pptx
