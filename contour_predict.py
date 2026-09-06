@@ -1,94 +1,86 @@
+"""Batch crack-contour prediction for images in ``input_images/``."""
+
+import os
+from pathlib import Path
+from typing import Optional, Tuple, Union
+
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Model
 
-# Load your trained U-Net model
-model = load_model('trained_model.h5')  # Update with the path to your trained model
+from inference import DEFAULT_THRESHOLD, load_model, predict_mask
+from preprocessing import IMG_HEIGHT, IMG_WIDTH, load_image
 
-# Function to preprocess the image
-def preprocess_image(image_path):
-    img = cv2.imread(image_path, cv2.IMREAD_COLOR)
-    img = cv2.resize(img, (256, 256))  # Resize to model input size
-    img = img / 255.0  # Normalize the image
-    return img
+PROJECT_ROOT = Path(__file__).resolve().parent
+INPUT_DIR = PROJECT_ROOT / "input_images"
+OUTPUT_DIR = PROJECT_ROOT / "output_images"
+MODELS_DIR = PROJECT_ROOT / "models"
+BATCH_THRESHOLD = DEFAULT_THRESHOLD
 
-# Function to refine the mask by removing noise near edges and filtering out small contours
-def refine_mask(mask, border_size=20, min_contour_area=100):
-    # Define kernel for morphological operations
-    kernel = np.ones((5, 5), np.uint8)
 
-    # Remove noise with morphological opening
-    refined_mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+def ensure_directories() -> None:
+    """Create the documented batch-processing directories when absent."""
+    for directory in (INPUT_DIR, OUTPUT_DIR, MODELS_DIR):
+        os.makedirs(directory, exist_ok=True)
 
-    # Clear edges to remove false detections at the borders
-    refined_mask[:border_size, :] = 0  # Top edge
-    refined_mask[-border_size:, :] = 0  # Bottom edge
-    refined_mask[:, :border_size] = 0  # Left edge
-    refined_mask[:, -border_size:] = 0  # Right edge
 
-    # Remove small contours that are likely noise
+def refine_mask(mask: np.ndarray, border_size: int = 20, min_contour_area: int = 100) -> np.ndarray:
+    """Remove border noise and small isolated contours from a binary mask."""
+    refined_mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+    refined_mask[:border_size, :] = 0
+    refined_mask[-border_size:, :] = 0
+    refined_mask[:, :border_size] = 0
+    refined_mask[:, -border_size:] = 0
+
     contours, _ = cv2.findContours(refined_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for contour in contours:
-        if cv2.contourArea(contour) < min_contour_area:  # Filter out small contours
-            cv2.drawContours(refined_mask, [contour], -1, 0, -1)  # Remove these contours
-
+        if cv2.contourArea(contour) < min_contour_area:
+            cv2.drawContours(refined_mask, [contour], -1, 0, -1)
     return refined_mask
 
-# Function to detect and draw contours of cracks on the original image
-def detect_and_draw_contours(image_path):
-    # Preprocess the input image
-    img = preprocess_image(image_path)
-    input_img = np.expand_dims(img, axis=0)  # Expand dimensions for prediction
 
-    # Make prediction using the trained model
-    pred_mask = model.predict(input_img)[0, :, :, 0]  # Get the first channel of the predicted mask
-    pred_mask_binary = (pred_mask > 0.3).astype(np.uint8)  # Threshold to get binary mask
-    
-    # Refine the predicted mask to remove false detections
-    pred_mask_refined = refine_mask(pred_mask_binary)
+def detect_and_draw_contours(
+    image: Union[str, Path], model: Optional[Model] = None, threshold: float = BATCH_THRESHOLD
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Return an annotated BGR image and its refined 256x256 binary mask."""
+    original_image = load_image(image)
+    prediction_model = model if model is not None else load_model()
+    refined_mask = refine_mask(predict_mask(original_image, prediction_model, threshold))
+    contours, _ = cv2.findContours(refined_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Find contours from the refined mask
-    contours, _ = cv2.findContours(pred_mask_refined, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Read the original image to draw contours
-    original_img = cv2.imread(image_path)
-
-    # Scale contours back to the original image size
-    h, w, _ = original_img.shape
-    scale_x = w / 256
-    scale_y = h / 256
-
-    # Draw filtered contours on the original image
+    height, width = original_image.shape[:2]
+    scale = np.array([width / IMG_WIDTH, height / IMG_HEIGHT])
+    annotated_image = original_image.copy()
     for contour in contours:
-        scaled_contour = contour * [scale_x, scale_y]  # Scale contours to the original size
-        scaled_contour = scaled_contour.astype(np.int32)  # Convert to integer for drawing
+        scaled_contour = (contour * scale).astype(np.int32)
+        cv2.drawContours(annotated_image, [scaled_contour], -1, (0, 255, 0), 2)
+    return annotated_image, refined_mask
 
-        # Draw the contour with a green line (color: (0, 255, 0))
-        cv2.drawContours(original_img, [scaled_contour], -1, (0, 255, 0), 2)  # Thickness of 2
 
-    # Display the results using Matplotlib
-    plt.figure(figsize=(15, 5))
+def main() -> None:
+    ensure_directories()
+    image_paths = [path for path in INPUT_DIR.iterdir() if path.is_file()]
+    if not image_paths:
+        print(f"No input images found in {INPUT_DIR}. Add an image and run this script again.")
+        return
 
-    # Display the original input image with detected contours
-    plt.subplot(1, 2, 1)
-    plt.imshow(cv2.cvtColor(original_img, cv2.COLOR_BGR2RGB))
-    plt.title('Original Image with Detected Crack Contours')
-    plt.axis('off')
+    try:
+        model = load_model()
+    except RuntimeError as error:
+        print(f"Unable to start batch prediction: {error}")
+        return
 
-    # Display the refined predicted mask
-    plt.subplot(1, 2, 2)
-    plt.imshow(pred_mask_refined, cmap='gray')
-    plt.title('Refined Predicted Mask')
-    plt.axis('off')
+    for image_path in image_paths:
+        try:
+            annotated_image, _ = detect_and_draw_contours(image_path, model)
+            output_path = OUTPUT_DIR / image_path.name
+            if not cv2.imwrite(str(output_path), annotated_image):
+                print(f"Could not write result: {output_path}")
+            else:
+                print(f"Saved result: {output_path}")
+        except (RuntimeError, ValueError) as error:
+            print(f"Skipping {image_path.name}: {error}")
 
-    plt.tight_layout()
-    plt.show()
 
-# Provide the path of the image you want to detect cracks in
-
-#image_path= 'bridge.jpeg'
-#image_path='road_2.png'
-image_path="concrete.jpg"
-
-detect_and_draw_contours(image_path)
+if __name__ == "__main__":
+    main()

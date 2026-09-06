@@ -45,13 +45,19 @@ This project aims to develop an advanced crack detection system by integrating a
    ```
 
 2. **Install Dependencies:**
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
 
-3. **Download Pretrained Model:**
-   - Download the pretrained U-Net model from [here](#) and place it in the `models/` directory.
+3. **Pretrained Model:**
+   - `model.h5` is included at the repository root and is loaded by
+     `inference.py`. It is currently 2.85 MiB, so Git LFS is not required.
+   - If a future model exceeds roughly 50 MiB, track it before committing with
+     `git lfs track "*.h5"` and commit the resulting `.gitattributes` file.
 
 4. **Run the Application:**
    ```bash
-   python live-detection.py
+   python live_detection.py
    ```
 
 ---
@@ -71,7 +77,7 @@ This project aims to develop an advanced crack detection system by integrating a
    - Place images in the `input_images/` directory.
    - Process images in batch mode:
      ```bash
-     python counter_prediction.py
+     python contour_predict.py
      ```
    - Results are saved in the `output_images/` directory with crack contours.
 
@@ -105,7 +111,7 @@ This project aims to develop an advanced crack detection system by integrating a
 
 3. **Evaluate the Model:**
    ```bash
-   python counter_prediction.py
+   python contour_predict.py
    ```
 
 ---
@@ -117,5 +123,29 @@ This project aims to develop an advanced crack detection system by integrating a
 3. **Crack Detection Model:** A U-Net architecture for detecting and segmenting cracks.
 4. **Result Visualization:** Overlay detected cracks on images or video feeds with contours.
 5. **User Interface:** A simple UI for viewing results and exporting data.
+
+---
+
+## Shared inference interface
+
+`preprocessing.py` is the single source of truth for U-Net input preparation:
+images stay in OpenCV's BGR order, are resized to 256x256, converted to
+`float32`, and divided by 255. `inference.py` exposes `load_model()` and
+`predict_mask(image, threshold=...)`; neither opens windows or writes files,
+so they can be imported directly by a future web API.
+
+`contour_predict.py` creates `input_images/`, `output_images/`, and `models/`
+on demand. Put batch images in `input_images/`; annotated results are written
+to `output_images/`.
+
+---
+
+## Web application
+
+The production-ready web app lives in `web/` and its stateless FastAPI service
+lives in `backend/`. It provides live, browser-side TensorFlow.js scanning and
+server-side single-image reports. See [DEPLOY.md](DEPLOY.md) for local setup,
+HTTPS camera requirements, TensorFlow.js model conversion, and Vercel/Render
+or Railway deployment instructions.
 
 ---

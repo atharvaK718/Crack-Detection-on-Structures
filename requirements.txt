@@ -1,0 +1,7 @@
+tensorflow==2.18.0
+opencv-python==4.10.0.84
+numpy==1.26.4
+matplotlib==3.9.4
+scikit-learn==1.5.2
+h5py==3.11.0
+pillow==12.3.0
